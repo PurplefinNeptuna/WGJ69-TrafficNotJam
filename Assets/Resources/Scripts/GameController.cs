@@ -36,7 +36,6 @@ public class GameController : MonoBehaviour {
 	public float unit2Meter;
 	public Player player;
 	public int score;
-	//public Direction nextTrackDir;
 	public Direction lastMoveDir;
 	public Vector3Int lastPlayerPos;
 	public Vector3 lastPlayerPosInWorld;
@@ -62,7 +61,6 @@ public class GameController : MonoBehaviour {
 			Destroy(gameObject);
 		}
 
-		// nextTrackDir = Direction.Up;
 		Screen.SetResolution(600, 600, false);
 		score = 0;
 		lastTrackPos = new Vector3Int(2, 4, 0);
@@ -83,7 +81,6 @@ public class GameController : MonoBehaviour {
 		string log = pre + "";
 		for (int j = 4; j >= 0; j--) {
 			for (int i = 0; i < 5; i++) {
-				//log += dLevel[i][j].num;
 				if (dLevel[i][j].dir == Direction.Up)
 					log += "^";
 				else if (dLevel[i][j].dir == Direction.Right)
@@ -109,7 +106,6 @@ public class GameController : MonoBehaviour {
 		if (playerPos != lastPlayerPos) {
 			Direction movDir = GetDirection(lastPlayerPos, playerPos);
 			if (CheckWay(lastMoveDir, movDir)) {
-				//if (movDir != level[2][2].dir) {
 				if (GetLevelData(level, new Vector3Int(2, 2, 0) + Dir2Vec(movDir)).num == 0) {
 					Destroy(player.gameObject);
 					return;
@@ -125,19 +121,12 @@ public class GameController : MonoBehaviour {
 				lastMoveDir = movDir;
 				oldLevel = CopyLevel();
 				Move(movDir);
-				// Cek kalo lastTrackPos diluar level
-				// kalo iya clamp + cari ulang track akhir yg masih di level
-				// if (!CheckValid(lastTrackPos)) {
-				// 	FindLastTrack(ref lastTrackPos, oldLevel, movDir);
-				// 	Debug.Log("FLT found: " + lastTrackPos);
-				// }
 				CheckRealLastTrack(ref lastTrackPos, level);
 				Debug.Log("CRLT found: " + lastTrackPos);
 				level[2][2].num = 2;
 				Fill(movDir);
 				if (movDir == GetLevelData(level, lastTrackPos).dir) {
 					Direction newRoadDir = Vec2Dir(Dir2Vec(movDir) * -1);
-					//while (Dir2Vec(newRoadDir) * -1 == Dir2Vec(movDir)) {
 					while (newRoadDir == RotateLeft(RotateLeft(movDir))) {
 						int idx = UnityEngine.Random.Range(0, 4);
 						newRoadDir = (Direction) Enum.GetValues(typeof(Direction)).GetValue(idx);
@@ -211,7 +200,6 @@ public class GameController : MonoBehaviour {
 				}
 				Checker(ref level);
 				UIController.main.UpdateMinimap(level);
-				//DebugLevel(level);
 			}
 			else {
 				player.transform.position = lastPlayerPosInWorld;
@@ -259,59 +247,6 @@ public class GameController : MonoBehaviour {
 		return levelSnap;
 	}
 
-	public void FindLastTrack(ref Vector3Int last, ref List<List<LData>> lv) {
-		List<List<LData>> levelSnap = CopyLevel();
-
-		DebugLevel(levelSnap);
-
-		Vector3Int startpos = new Vector3Int(2, 2, 0);
-		levelSnap[startpos.x][startpos.y].num = 2;
-		if (GetLevelData(levelSnap, (startpos + Dir2Vec(GetLevelData(levelSnap, startpos).dir))).num == 0)
-			return;
-		while (CheckValid(startpos)) {
-			if (CheckValid(startpos + Dir2Vec(GetLevelData(levelSnap, startpos).dir)) &&
-				GetLevelData(levelSnap, startpos + Dir2Vec(GetLevelData(levelSnap, startpos).dir)).num == 1) {
-				startpos += Dir2Vec(GetLevelData(levelSnap, startpos).dir);
-				levelSnap[startpos.x][startpos.y].num = 2;
-			}
-			else {
-				break;
-			}
-		}
-
-		DebugLevel(levelSnap);
-
-		//dir = GetLevelData(levelSnap, startpos).dir;
-		last = startpos;
-		lv[last.x][last.y].dir = GetLevelData(levelSnap, startpos).dir;
-
-		Debug.Log(GetLevelData(levelSnap, startpos).dir + " " + startpos);
-	}
-
-	public void FindLastTrack(ref Vector3Int last, List<List<LData>> oldlv, Direction lastMove) {
-		Direction invLastMove = RotateLeft(RotateLeft(lastMove));
-		Vector3Int lpos = last - Dir2Vec(invLastMove);
-		Vector3Int ans = lpos;
-		DebugLevel(oldlv);
-		//while (!CheckValid(lpos + Dir2Vec(lastMove))) {
-		bool lastIsInvalid = true;
-		while (lpos.x != 2 || lpos.y != 2 && GetLevelData(oldlv, lpos).from != Direction.Null) {
-			Debug.Log(lpos.ToString() + CheckValid(lpos + Dir2Vec(invLastMove)).ToString());
-			if (CheckValid(lpos + Dir2Vec(invLastMove)) && lastIsInvalid) {
-				lastIsInvalid = false;
-				ans = lpos + Dir2Vec(invLastMove);
-				Debug.Log(GetLevelData(level, ans).dir + " " + ans);
-			}
-			else if (!CheckValid(lpos + Dir2Vec(invLastMove))) {
-				lastIsInvalid = true;
-			}
-			lpos += Dir2Vec(GetLevelData(oldlv, lpos).from);
-		}
-		last = ans;
-		Debug.Log(GetLevelData(level, ans).dir + " " + last);
-		//Debug.Log(last);
-	}
-
 	public LData GetLevelData(List<List<LData>> data, Vector3Int idx) {
 		if (!CheckValid(idx)) return new LData(-1, 4);
 		return data[idx.x][idx.y];
@@ -321,28 +256,24 @@ public class GameController : MonoBehaviour {
 		if (dir == Direction.Up) {
 			for (int i = 0; i < 5; i++) {
 				Vector3Int newPos = bottomLeft + new Vector3Int(i, 4, 0);
-				//if (!roadTile.HasTile(newPos))
 				roadTile.SetTile(newPos, tiles["Road00"]);
 			}
 		}
 		else if (dir == Direction.Down) {
 			for (int i = 0; i < 5; i++) {
 				Vector3Int newPos = bottomLeft + new Vector3Int(i, 0, 0);
-				//if (!roadTile.HasTile(newPos))
 				roadTile.SetTile(newPos, tiles["Road00"]);
 			}
 		}
 		else if (dir == Direction.Left) {
 			for (int i = 0; i < 5; i++) {
 				Vector3Int newPos = bottomLeft + new Vector3Int(0, i, 0);
-				//if (!roadTile.HasTile(newPos))
 				roadTile.SetTile(newPos, tiles["Road00"]);
 			}
 		}
 		else if (dir == Direction.Right) {
 			for (int i = 0; i < 5; i++) {
 				Vector3Int newPos = bottomLeft + new Vector3Int(4, i, 0);
-				//if (!roadTile.HasTile(newPos))
 				roadTile.SetTile(newPos, tiles["Road00"]);
 			}
 		}
@@ -431,24 +362,6 @@ public class GameController : MonoBehaviour {
 	}
 
 	public static Direction GetDirection(Vector3Int from, Vector3Int to) {
-		// if (from.x == to.x) {
-		// 	if (from.y < to.y)
-		// 		return Direction.Up;
-		// 	else if (from.y > to.y)
-		// 		return Direction.Down;
-		// 	else
-		// 		return Direction.Null;
-		// }
-		// else if (from.y == to.y) {
-		// 	if (from.x < to.x)
-		// 		return Direction.Right;
-		// 	else if (from.x > to.x)
-		// 		return Direction.Left;
-		// 	else
-		// 		return Direction.Null;
-		// }
-		// else
-		// 	return Direction.Null;
 		return Vec2Dir(to - from);
 	}
 
@@ -482,6 +395,4 @@ public class GameController : MonoBehaviour {
 			level.Insert(0, newChunk);
 		}
 	}
-	//TODO:
-	//Generate new parts
 }
