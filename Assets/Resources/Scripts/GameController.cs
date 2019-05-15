@@ -65,7 +65,7 @@ public class GameController : MonoBehaviour {
 		score = 0;
 		lastTrackPos = new Vector3Int(2, 4, 0);
 		bottomLeft = new Vector3Int(0, 0, 0);
-		unit2Meter = 46.637624944f;
+		unit2Meter = 40.554456473f;
 		lastMoveDir = Direction.Null;
 		tiles = Resources.LoadAll<Tile>("Tiles").ToDictionary(x => x.name, x => x);
 	}
@@ -95,7 +95,7 @@ public class GameController : MonoBehaviour {
 			}
 			log += "\n";
 		}
-		Debug.Log(log);
+		//Debug.Log(log);
 
 	}
 
@@ -111,7 +111,7 @@ public class GameController : MonoBehaviour {
 					return;
 				}
 				else if (movDir == level[2][2].dir) {
-					score++;
+					score += 20;
 				}
 				LData lastTrackData = GetLevelData(level, lastTrackPos);
 				Direction lastTrackDir = lastTrackData.dir;
@@ -122,7 +122,7 @@ public class GameController : MonoBehaviour {
 				oldLevel = CopyLevel();
 				Move(movDir);
 				CheckRealLastTrack(ref lastTrackPos, level);
-				Debug.Log("CRLT found: " + lastTrackPos);
+				//Debug.Log("CRLT found: " + lastTrackPos);
 				level[2][2].num = 2;
 				Fill(movDir);
 				if (movDir == GetLevelData(level, lastTrackPos).dir) {
@@ -394,5 +394,9 @@ public class GameController : MonoBehaviour {
 			}
 			level.Insert(0, newChunk);
 		}
+	}
+
+	public float Unit2KMH(float baseSpeed) {
+		return baseSpeed * unit2Meter * 3.6f;
 	}
 }

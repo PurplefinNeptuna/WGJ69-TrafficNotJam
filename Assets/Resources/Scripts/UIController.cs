@@ -30,9 +30,9 @@ public class UIController : MonoBehaviour {
 
 	private void Update() {
 		if (Main.player != null) {
-			speedText.text = (Mathf.RoundToInt(Main.player.rb2d.velocity.magnitude * Main.unit2Meter)).ToString("D3") + " kmh";
+			speedText.text = (Mathf.RoundToInt(Main.Unit2KMH(Main.player.speed))).ToString("D3") + " kmh";
 			scoreText.text = "score: " + Main.score.ToString("D6");
-			driftText.text = "drift:    " + (Mathf.RoundToInt(Main.player.slideVelocity * Main.unit2Meter)).ToString("D3");
+			driftText.text = "style:    " + Main.player.slideInKMH.ToString("D3");
 		}
 	}
 
