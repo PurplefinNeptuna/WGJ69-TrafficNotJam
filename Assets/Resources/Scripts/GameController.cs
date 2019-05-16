@@ -36,7 +36,12 @@ public class GameController : MonoBehaviour {
 	[HideInInspector]
 	public float unit2Meter;
 	public Player player;
+	public Rigidbody2D playerrb2d;
+	public AudioSource playerSound;
+	public AudioSource playerSlide;
+	public float playerMaxSpeed;
 	public GameObject jamPrefab;
+	public AudioSource jamSound;
 	public int score;
 	public float jamLevel;
 	public int jamMultiplier;
@@ -55,6 +60,12 @@ public class GameController : MonoBehaviour {
 			new List<LData>() { new LData(0, 4, 4), new LData(0, 4, 4), new LData(0, 4, 4), new LData(0, 4, 4), new LData(0, 4, 4) }
 	};
 
+	public float EnginePitch {
+		get {
+			return 0.3f + (playerrb2d.velocity.magnitude / playerMaxSpeed) * 1.1f;
+		}
+	}
+
 	private void Awake() {
 		if (main == null) {
 			main = this;
@@ -72,17 +83,24 @@ public class GameController : MonoBehaviour {
 		tiles = Resources.LoadAll<Tile>("Tiles").ToDictionary(x => x.name, x => x);
 		jamLevel = 0f;
 		jamMultiplier = 1;
+		playerMaxSpeed = 1.095920133f;
+		playerSound = player.GetComponents<AudioSource>() [0];
+		playerSlide = player.GetComponents<AudioSource>() [1];
+		playerrb2d = player.GetComponent<Rigidbody2D>();
 	}
 
 	private void Start() {
 		lastPlayerPos = grid.WorldToCell(player.transform.position);
 		lastPlayerPosInWorld = player.transform.position;
 		UIController.main.UpdateMinimap(level);
+		playerSound.Play();
 		DebugLevel(level);
 	}
 
 	private void Update() {
 		if (player == null) {
+			playerSound.pitch = EnginePitch;
+			playerSlide.Stop();
 			if (Input.GetButtonDown("Start")) {
 				SceneManager.LoadScene(0);
 			}
