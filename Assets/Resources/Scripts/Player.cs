@@ -2,6 +2,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public class StyleLevel {
+	private Queue<int> sQueue;
+	private int avg;
+	private int total;
+	public int Score {
+		get {
+			return avg;
+		}
+	}
+	public StyleLevel() {
+		sQueue = new Queue<int>();
+		avg = 0;
+		total = 0;
+	}
+	public void Add(int score) {
+		if (sQueue.Count < 60) {
+			total += score;
+			sQueue.Enqueue(score);
+		}
+		else {
+			total += (score - sQueue.Dequeue());
+			sQueue.Enqueue(score);
+		}
+		avg = Mathf.RoundToInt((float) total / (float) sQueue.Count);
+	}
+}
+
 public class Player : MonoBehaviour {
 	[HideInInspector]
 	public Rigidbody2D rb2d;
@@ -13,8 +40,7 @@ public class Player : MonoBehaviour {
 	public float slideVelocity;
 	public int slideInKMH;
 	public int styleRating;
-	public int slideScore;
-	public int ntick;
+	public StyleLevel styleScore;
 	public float slideScoreCooldown;
 	public float slideScoreCooldownMax;
 	public float delta;
@@ -35,15 +61,14 @@ public class Player : MonoBehaviour {
 
 	private void Awake() {
 		rb2d = GetComponent<Rigidbody2D>();
+		styleScore = new StyleLevel();
 		turnSpeed = 0.09f;
 		acceleration = 1.2f;
 		maxSpeed = 1.286514914f;
-		reverseMult = 0.5f;
+		reverseMult = 0.8f;
 		slideVelocity = 0f;
 		slideInKMH = 0;
 		styleRating = 0;
-		ntick = 0;
-		slideScore = 0;
 		slideScoreCooldownMax = 1f;
 		slideScoreCooldown = slideScoreCooldownMax;
 		delta = 0f;
@@ -60,15 +85,13 @@ public class Player : MonoBehaviour {
 		slideInKMH = Mathf.RoundToInt(Main.Unit2KMH(slideVelocity));
 		if (!Mathf.Approximately(Main.Unit2KMH(speed), 0f))
 			styleRating = Mathf.CeilToInt((float) slideInKMH * ((float) slideInKMH / Main.Unit2KMH(speed)) * ((float) slideInKMH / slideTreshold) * Main.jamMultiplier);
-		ntick++;
-		slideScore += styleRating;
+
+		styleScore.Add(styleRating);
 		slideScoreCooldown -= delta;
 		if (slideScoreCooldown <= 0f) {
 			slideScoreCooldown = slideScoreCooldownMax + slideScoreCooldown;
-			int styleScore = (slideScore / (10 * ntick));
-			Main.score += styleScore;
-			slideScore = 0;
-			ntick = 0;
+			int styleScoreNow = styleScore.Score / 10;
+			Main.score += styleScoreNow;
 		}
 
 		float slideDir = Mathf.Sign(Vector2.SignedAngle(rb2d.velocity, heading));

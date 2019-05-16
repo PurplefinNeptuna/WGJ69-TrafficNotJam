@@ -12,7 +12,7 @@ public class Jam : MonoBehaviour {
 
 	private void OnTriggerEnter2D(Collider2D other) {
 		if (other.gameObject.layer == LayerMask.NameToLayer("Player")) {
-			Main.jamLevel += 0.5f;
+			Main.jamLevel += 0.25f;
 			Destroy(gameObject);
 		}
 	}

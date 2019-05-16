@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 public enum Direction {
@@ -81,99 +82,103 @@ public class GameController : MonoBehaviour {
 	}
 
 	private void Update() {
-		if (player == null)
-			return;
-
-		jamLevel -= Time.deltaTime/4f;
-		jamLevel = Mathf.Clamp01(jamLevel);
-		jamMultiplier = Mathf.FloorToInt(jamLevel * 5f) + 1;
-		jamMultiplier = Mathf.Clamp(jamMultiplier, 1, 5);
-		#region updateTrack
-		Vector3Int playerPos = grid.WorldToCell(player.transform.position);
-		if (playerPos != lastPlayerPos) {
-			Direction movDir = GetDirection(lastPlayerPos, playerPos);
-			if (CheckWay(lastMoveDir, movDir)) {
-				if (GetLevelData(level, new Vector3Int(2, 2, 0) + Dir2Vec(movDir)).num == 0) {
-					Destroy(player.gameObject);
-					return;
-				}
-				else if (movDir == level[2][2].dir) {
-					score += 20;
-				}
-				LData lastTrackData = GetLevelData(level, lastTrackPos);
-				Direction lastTrackDir = lastTrackData.dir;
-				bottomLeft += (playerPos - lastPlayerPos);
-				lastTrackPos -= (playerPos - lastPlayerPos);
-				lastPlayerPos = playerPos;
-				lastMoveDir = movDir;
-				Move(movDir);
-				CheckRealLastTrack(ref lastTrackPos, level);
-				//Debug.Log("CRLT found: " + lastTrackPos);
-				level[2][2].num = 2;
-				Fill(movDir);
-				if (movDir == GetLevelData(level, lastTrackPos).dir) {
-					Direction newRoadDir = RotateLeft(RotateLeft(movDir));
-					while (newRoadDir == RotateLeft(RotateLeft(movDir))) {
-						int idx = UnityEngine.Random.Range(0, 4);
-						newRoadDir = (Direction) Enum.GetValues(typeof(Direction)).GetValue(idx);
+		if (player == null) {
+			if (Input.GetButtonDown("Start")) {
+				SceneManager.LoadScene(0);
+			}
+		}
+		else {
+			jamLevel -= Time.deltaTime / 10f;
+			jamLevel = Mathf.Clamp01(jamLevel);
+			jamMultiplier = Mathf.FloorToInt(jamLevel * 5f) + 1;
+			jamMultiplier = Mathf.Clamp(jamMultiplier, 1, 5);
+			#region updateTrack
+			Vector3Int playerPos = grid.WorldToCell(player.transform.position);
+			if (playerPos != lastPlayerPos) {
+				Direction movDir = GetDirection(lastPlayerPos, playerPos);
+				if (CheckWay(lastMoveDir, movDir)) {
+					if (GetLevelData(level, new Vector3Int(2, 2, 0) + Dir2Vec(movDir)).num == 0) {
+						Destroy(player);
+						return;
 					}
-					Vector3Int newTrackPos = lastTrackPos + Dir2Vec(movDir);
-					Vector3Int newRoadPos = bottomLeft + newTrackPos;
-					if (newRoadDir == movDir) {
-						level[newTrackPos.x][newTrackPos.y] = new LData(1, (int) newRoadDir, (int) RotateLeft(RotateLeft(movDir)));
-						roadTile.SetTile(newRoadPos, tiles[GetRoadName(lastTrackDir, newRoadDir)]);
-						lastTrackPos = newTrackPos;
-						GetLevelData(level, lastTrackPos).dir = newRoadDir;
-						GenerateJam(lastTrackPos + bottomLeft);
+					else if (movDir == level[2][2].dir) {
+						score += 5 * jamMultiplier;
 					}
-					else if (newRoadDir == RotateLeft(movDir) || newRoadDir == RotateRight(movDir)) {
-						Direction initDir = newRoadDir;
-						level[newTrackPos.x][newTrackPos.y] = new LData(1, (int) newRoadDir, (int) RotateLeft(RotateLeft(movDir)));
-						roadTile.SetTile(newRoadPos, tiles[GetRoadName(lastTrackDir, newRoadDir)]);
-						lastTrackDir = newRoadDir;
-						lastTrackPos = newTrackPos;
-						newTrackPos = lastTrackPos + Dir2Vec(newRoadDir);
-						newRoadPos = bottomLeft + newTrackPos;
-						GetLevelData(level, lastTrackPos).dir = newRoadDir;
-						GenerateJam(lastTrackPos + bottomLeft);
-						while (newRoadDir != movDir && CheckValid(newTrackPos)) {
-							int idx = UnityEngine.Random.Range(0, 2);
-							newRoadDir = (Direction) new List<Direction>() {
-								movDir,
-								initDir
-							}[idx];
+					LData lastTrackData = GetLevelData(level, lastTrackPos);
+					Direction lastTrackDir = lastTrackData.dir;
+					bottomLeft += (playerPos - lastPlayerPos);
+					lastTrackPos -= (playerPos - lastPlayerPos);
+					lastPlayerPos = playerPos;
+					lastMoveDir = movDir;
+					Move(movDir);
+					CheckRealLastTrack(ref lastTrackPos, level);
+					//Debug.Log("CRLT found: " + lastTrackPos);
+					level[2][2].num = 2;
+					Fill(movDir);
+					if (movDir == GetLevelData(level, lastTrackPos).dir) {
+						Direction newRoadDir = RotateLeft(RotateLeft(movDir));
+						while (newRoadDir == RotateLeft(RotateLeft(movDir))) {
+							int idx = UnityEngine.Random.Range(0, 4);
+							newRoadDir = (Direction) Enum.GetValues(typeof(Direction)).GetValue(idx);
+						}
+						Vector3Int newTrackPos = lastTrackPos + Dir2Vec(movDir);
+						Vector3Int newRoadPos = bottomLeft + newTrackPos;
+						if (newRoadDir == movDir) {
+							level[newTrackPos.x][newTrackPos.y] = new LData(1, (int) newRoadDir, (int) RotateLeft(RotateLeft(movDir)));
+							roadTile.SetTile(newRoadPos, tiles[GetRoadName(lastTrackDir, newRoadDir)]);
 							lastTrackPos = newTrackPos;
-							if (newRoadDir == movDir) {
+							GetLevelData(level, lastTrackPos).dir = newRoadDir;
+							GenerateJam(lastTrackPos + bottomLeft);
+						}
+						else if (newRoadDir == RotateLeft(movDir) || newRoadDir == RotateRight(movDir)) {
+							Direction initDir = newRoadDir;
+							level[newTrackPos.x][newTrackPos.y] = new LData(1, (int) newRoadDir, (int) RotateLeft(RotateLeft(movDir)));
+							roadTile.SetTile(newRoadPos, tiles[GetRoadName(lastTrackDir, newRoadDir)]);
+							lastTrackDir = newRoadDir;
+							lastTrackPos = newTrackPos;
+							newTrackPos = lastTrackPos + Dir2Vec(newRoadDir);
+							newRoadPos = bottomLeft + newTrackPos;
+							GetLevelData(level, lastTrackPos).dir = newRoadDir;
+							GenerateJam(lastTrackPos + bottomLeft);
+							while (newRoadDir != movDir && CheckValid(newTrackPos)) {
+								int idx = UnityEngine.Random.Range(0, 2);
+								newRoadDir = (Direction) new List<Direction>() {
+									movDir,
+									initDir
+								}[idx];
+								lastTrackPos = newTrackPos;
+								if (newRoadDir == movDir) {
+									level[newTrackPos.x][newTrackPos.y] = new LData(1, (int) newRoadDir, (int) RotateLeft(RotateLeft(lastTrackDir)));
+									roadTile.SetTile(newRoadPos, tiles[GetRoadName(lastTrackDir, newRoadDir)]);
+									GetLevelData(level, lastTrackPos).dir = newRoadDir;
+									GenerateJam(lastTrackPos + bottomLeft);
+									break;
+								}
 								level[newTrackPos.x][newTrackPos.y] = new LData(1, (int) newRoadDir, (int) RotateLeft(RotateLeft(lastTrackDir)));
 								roadTile.SetTile(newRoadPos, tiles[GetRoadName(lastTrackDir, newRoadDir)]);
 								GetLevelData(level, lastTrackPos).dir = newRoadDir;
 								GenerateJam(lastTrackPos + bottomLeft);
-								break;
+								newTrackPos = lastTrackPos + Dir2Vec(newRoadDir);
+								newRoadPos = bottomLeft + newTrackPos;
+								lastTrackDir = newRoadDir;
 							}
-							level[newTrackPos.x][newTrackPos.y] = new LData(1, (int) newRoadDir, (int) RotateLeft(RotateLeft(lastTrackDir)));
-							roadTile.SetTile(newRoadPos, tiles[GetRoadName(lastTrackDir, newRoadDir)]);
-							GetLevelData(level, lastTrackPos).dir = newRoadDir;
-							GenerateJam(lastTrackPos + bottomLeft);
-							newTrackPos = lastTrackPos + Dir2Vec(newRoadDir);
-							newRoadPos = bottomLeft + newTrackPos;
-							lastTrackDir = newRoadDir;
 						}
 					}
+					Checker(ref level);
+					UIController.main.UpdateMinimap(level);
 				}
-				Checker(ref level);
-				UIController.main.UpdateMinimap(level);
+				else {
+					player.transform.position = lastPlayerPosInWorld;
+					player.rb2d.velocity = Vector2.zero;
+					Vector2 barrierDir = new Vector2(Dir2Vec(movDir).x * -1, Dir2Vec(movDir).y * -1);
+					player.rb2d.AddForce(barrierDir * player.acceleration * 2);
+				}
 			}
 			else {
-				player.transform.position = lastPlayerPosInWorld;
-				player.rb2d.velocity = Vector2.zero;
-				Vector2 barrierDir = new Vector2(Dir2Vec(movDir).x * -1, Dir2Vec(movDir).y * -1);
-				player.rb2d.AddForce(barrierDir * player.acceleration * 2);
+				lastPlayerPosInWorld = player.transform.position;
 			}
+			#endregion
 		}
-		else {
-			lastPlayerPosInWorld = player.transform.position;
-		}
-		#endregion
 	}
 
 	#region updateTrackLogic
