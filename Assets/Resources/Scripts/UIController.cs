@@ -9,6 +9,7 @@ public class UIController : MonoBehaviour {
 	public TextMeshProUGUI speedText;
 	public TextMeshProUGUI scoreText;
 	public TextMeshProUGUI driftText;
+	public Slider jamSlider;
 	public List<Image> minimap;
 	private Sprite arrow;
 	public GameController Main {
@@ -32,7 +33,8 @@ public class UIController : MonoBehaviour {
 		if (Main.player != null) {
 			speedText.text = (Mathf.RoundToInt(Main.Unit2KMH(Main.player.speed))).ToString("D3") + " kmh";
 			scoreText.text = "score: " + Main.score.ToString("D6");
-			driftText.text = "style:    " + Main.player.slideInKMH.ToString("D3");
+			driftText.text = "style:    " + Main.player.styleRating.ToString("D3");
+			jamSlider.value = Main.jamLevel;
 		}
 	}
 

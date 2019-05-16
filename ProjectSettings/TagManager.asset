@@ -13,8 +13,8 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
+  - Player
+  - Object
   - 
   - 
   - 
@@ -43,6 +43,9 @@ TagManager:
     locked: 0
   - name: BG
     uniqueID: 4129530957
+    locked: 0
+  - name: Objects
+    uniqueID: 4129737409
     locked: 0
   - name: Player
     uniqueID: 1686411005

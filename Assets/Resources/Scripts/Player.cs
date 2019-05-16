@@ -12,12 +12,15 @@ public class Player : MonoBehaviour {
 	public float speed;
 	public float slideVelocity;
 	public int slideInKMH;
+	public int styleRating;
 	public int slideScore;
 	public int ntick;
 	public float slideScoreCooldown;
 	public float slideScoreCooldownMax;
 	public float delta;
-	
+	public float antiSlideMultiplier;
+	public float slideTreshold;
+
 	public GameController Main {
 		get {
 			return GameController.main;
@@ -38,12 +41,15 @@ public class Player : MonoBehaviour {
 		reverseMult = 0.5f;
 		slideVelocity = 0f;
 		slideInKMH = 0;
+		styleRating = 0;
 		ntick = 0;
 		slideScore = 0;
 		slideScoreCooldownMax = 1f;
 		slideScoreCooldown = slideScoreCooldownMax;
 		delta = 0f;
 		speed = 0f;
+		antiSlideMultiplier = 5f;
+		slideTreshold = 60f;
 	}
 
 	private void Update() {
@@ -52,15 +58,16 @@ public class Player : MonoBehaviour {
 		Vector2 heading = transform.rotation * Vector2.up;
 		slideVelocity = Vector3.Cross(heading, rb2d.velocity).magnitude / heading.magnitude;
 		slideInKMH = Mathf.RoundToInt(Main.Unit2KMH(slideVelocity));
-
+		if (!Mathf.Approximately(Main.Unit2KMH(speed), 0f))
+			styleRating = Mathf.CeilToInt((float) slideInKMH * ((float) slideInKMH / Main.Unit2KMH(speed)) * ((float) slideInKMH / slideTreshold) * Main.jamMultiplier);
 		ntick++;
-		slideScore += slideInKMH;
+		slideScore += styleRating;
 		slideScoreCooldown -= delta;
 		if (slideScoreCooldown <= 0f) {
 			slideScoreCooldown = slideScoreCooldownMax + slideScoreCooldown;
-			Main.score += (slideScore / (20 * ntick));
+			int styleScore = (slideScore / (10 * ntick));
+			Main.score += styleScore;
 			slideScore = 0;
-			Debug.Log(ntick);
 			ntick = 0;
 		}
 
@@ -81,7 +88,7 @@ public class Player : MonoBehaviour {
 			rb2d.AddTorque(-turnSpeed * turnMult);
 		}
 		if (angle > 5f) {
-			rb2d.AddRelativeForce(3f * Vector2.left * slideDir * slideVelocity);
+			rb2d.AddRelativeForce(antiSlideMultiplier * Vector2.left * slideDir * slideVelocity);
 		}
 		rb2d.velocity = Vector2.ClampMagnitude(rb2d.velocity, maxSpeed);
 	}
