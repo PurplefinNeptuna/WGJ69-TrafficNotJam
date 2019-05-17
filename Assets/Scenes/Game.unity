@@ -3367,6 +3367,7 @@ MonoBehaviour:
   rb2d: {fileID: 0}
   playerSound: {fileID: 0}
   playerSlide: {fileID: 0}
+  slidePlaying: 0
   turnSpeed: 0
   acceleration: 0
   reverseMult: 0
@@ -3393,7 +3394,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: acfd5e7a3a6c14780a7d997d90e45bb6, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.35
+  m_Volume: 0.45
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -3489,8 +3490,8 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: a37d722e3016adb6f8991e27c9455e3b, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.6
-  m_Pitch: 0.8
+  m_Volume: 0.4
+  m_Pitch: 1
   Loop: 1
   Mute: 0
   Spatialize: 0
@@ -5416,6 +5417,7 @@ MonoBehaviour:
   player: {fileID: 1050624607}
   playerrb2d: {fileID: 0}
   playerSound: {fileID: 0}
+  playerSlide: {fileID: 0}
   playerMaxSpeed: 0
   jamPrefab: {fileID: 8363649108731198156, guid: eed6864201f04d8c58e857cbbb37e1a8,
     type: 3}

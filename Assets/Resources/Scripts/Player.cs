@@ -34,6 +34,8 @@ public class Player : MonoBehaviour {
 	public Rigidbody2D rb2d;
 	public AudioSource playerSound;
 	public AudioSource playerSlide;
+	public bool slidePlaying;
+	public bool slidePlayingByBrake;
 	public float turnSpeed;
 	public float acceleration;
 	public float reverseMult;
@@ -68,6 +70,12 @@ public class Player : MonoBehaviour {
 		}
 	}
 
+	public float AngleRating {
+		get {
+			return 0.2f + 0.25f * Mathf.Min((angle / 30f), 1.5f);
+		}
+	}
+
 	private void Awake() {
 		rb2d = GetComponent<Rigidbody2D>();
 		playerSound = GetComponents<AudioSource>() [0];
@@ -86,6 +94,8 @@ public class Player : MonoBehaviour {
 		speed = 0f;
 		antiSlideMultiplier = 5f;
 		slideTreshold = 60f;
+		slidePlaying = false;
+		slidePlayingByBrake = false;
 	}
 
 	private void Update() {
@@ -115,6 +125,16 @@ public class Player : MonoBehaviour {
 		}
 		if (Input.GetAxisRaw("Vertical") < 0f || Input.GetButton("Fire3")) {
 			rb2d.AddRelativeForce(Vector2.down * acceleration * reverseMult);
+			if (!slidePlayingByBrake && angle <= 90f) {
+				playerSlide.volume = Mathf.Max(0.45f, playerSlide.volume);
+				playerSlide.Play();
+				slidePlayingByBrake = true;
+			}
+		}
+		else if (slidePlayingByBrake) {
+			playerSlide.Stop();
+			slidePlaying = false;
+			slidePlayingByBrake = false;
 		}
 		if (Input.GetAxisRaw("Horizontal") < 0f) {
 			rb2d.AddTorque(turnSpeed * turnMult);
@@ -125,11 +145,20 @@ public class Player : MonoBehaviour {
 		if (angle > 5f) {
 			rb2d.AddRelativeForce(antiSlideMultiplier * Vector2.left * slideDir * slideVelocity);
 		}
-		if (angle > 15f && angle < 135) {
-			playerSlide.Play();
+		if (angle > 10f && angle < 135) {
+			if (!slidePlaying) {
+				playerSlide.volume = slidePlayingByBrake? Mathf.Max(0.45f, AngleRating) : AngleRating;
+				playerSlide.Play();
+				slidePlaying = true;
+			}
+			else {
+				playerSlide.volume = slidePlayingByBrake? Mathf.Max(0.45f, AngleRating) : AngleRating;
+			}
 		}
-		else {
+		else if (slidePlaying) {
 			playerSlide.Stop();
+			slidePlaying = false;
+			slidePlayingByBrake = false;
 		}
 		rb2d.velocity = Vector2.ClampMagnitude(rb2d.velocity, maxSpeed);
 	}
